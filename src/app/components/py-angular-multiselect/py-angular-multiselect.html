@@ -1,13 +1,21 @@
 <div class="multi-select-container">
-    <form ng-submit="vm.submitChoice()">
-        <ul class="multi-choices" ng-click="vm.setInputFocus()">
-            <li ng-repeat="choice in vm.selected" class="search-choice">
-                <span>{{choice.name}}</span>
-                <a ng-click="vm.removeChoice(choice, $index)" class="search-choice-close">X</a>
-            </li>
-            <li class="search-input">
+    <ul class="multi-select-choice-ul">
+        <li ng-repeat="choice in vm.selected" class="multi-select-choice-li" ng-click="vm.removeChoice(choice, $index)">
+            <span class="multi-select-choice-content">{{choice.name}}</span>
+            <button class="multi-select-choice-close">
+                <svg class="multi-select-close-svg" version="1.1" x="0px" y="0px" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg" fit="" height="100%"
+                     width="100%" preserveAspectRatio="xMidYMid meet" style="pointer-events: none; display: block;">
+                    <g>
+                        <path d="M19 6.41l-1.41-1.41-5.59 5.59-5.59-5.59-1.41 1.41 5.59 5.59-5.59 5.59 1.41 1.41 5.59-5.59 5.59 5.59 1.41-1.41-5.59-5.59z"></path>
+                    </g>
+                </svg>
+            </button>
+        </li>
+        <li class="multi-select-input-search-li">
+            <form ng-submit="vm.submitChoice()">
                 <input
-                        class="multi-select-input"
+                        class="multi-select-input-search"
                         type="text"
                         ng-model="vm.selectInput"
                         placeholder="{{vm.placeholder}}"
@@ -15,19 +23,27 @@
                         ng-change="vm.inputChange()"
                         />
                 <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
-            </li>
-        </ul>
-    </form>
-    <div class="multi-dropdown" ng-show="vm.selectInput">
-        <ul class="multi-results">
-            <li class="multi-results-li">{{vm.selectInput}} {{vm.dropdownHelpText}} </li>
-            <li
-                    class="multi-results-li result-active"
+            </form>
+        </li>
+    </ul>
+    <div class="multi-suggestions-dropdown" ng-show="vm.selectInput">
+        <ul class="multi-suggestions-ul">
+            <md-list-item
+                    class="multi-suggestions-li"
+                    ng-click="vm.submitChoice()">
+
+                <p>{{vm.selectInput}} {{vm.dropdownHelpText}}</p>
+            </md-list-item>
+            <md-list-item
+                    class="multi-suggestions-li result-active"
                     ng-repeat="result in vm.resultsList"
-                    ng-click="vm.addResult(result)"
-                    ng-class="result.selected ? 'result-selected' : 'result-active'">
-                {{result.name}}
-            </li>
+                    ng-click="vm.toggleSuggestion(result)"
+                    ng-class="result.selected ? 'suggestions-selected' : 'result-active'">
+                <p>{{result.name}}</p>
+                <md-checkbox ng-checked="result.selected" aria-label="Checkbox {{$index}}"></md-checkbox>
+                <span style="float:right">
+                </span>
+            </md-list-item>
         </ul>
     </div>
 </div>

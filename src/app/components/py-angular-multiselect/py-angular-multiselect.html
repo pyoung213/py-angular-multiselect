@@ -1,0 +1,33 @@
+<div class="multi-select-container">
+    <form ng-submit="vm.submitChoice()">
+        <ul class="multi-choices" ng-click="vm.setInputFocus()">
+            <li ng-repeat="choice in vm.selected" class="search-choice">
+                <span>{{choice.name}}</span>
+                <a ng-click="vm.removeChoice(choice, $index)" class="search-choice-close">X</a>
+            </li>
+            <li class="search-input">
+                <input
+                        class="multi-select-input"
+                        type="text"
+                        ng-model="vm.selectInput"
+                        placeholder="{{vm.placeholder}}"
+                        ng-keydown="vm.inputKeypress($event)"
+                        ng-change="vm.inputChange()"
+                        />
+                <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
+            </li>
+        </ul>
+    </form>
+    <div class="multi-dropdown" ng-show="vm.selectInput">
+        <ul class="multi-results">
+            <li class="multi-results-li">{{vm.selectInput}} {{vm.dropdownHelpText}} </li>
+            <li
+                    class="multi-results-li result-active"
+                    ng-repeat="result in vm.resultsList"
+                    ng-click="vm.addResult(result)"
+                    ng-class="result.selected ? 'result-selected' : 'result-active'">
+                {{result.name}}
+            </li>
+        </ul>
+    </div>
+</div>

@@ -30,7 +30,7 @@
         var HELP_TEXT_SELECTED = "(Already Selected)";
         var HELP_TEXT_SUGGESTED = "(Suggested)";
 
-        var inputElement = $element[0].getElementsByClassName('multi-select-input');
+        var inputElement = $element[0].getElementsByClassName('multi-select-input-search');
 
         vm.selected = vm.selected || [];
         vm.selectInput = '';
@@ -42,20 +42,21 @@
         vm.clearInput = clearInput;
         vm.findInResults = findInResults;
         vm.findInChoices = findInChoices;
-        vm.findName = findName;
         vm.inputKeypress = inputKeypress;
         vm.inputChange = inputChange;
         vm.removeChoice = removeChoice;
         vm.removeLastFromChoices = removeLastFromChoices;
         vm.setInputFocus = setInputFocus;
         vm.submitChoice = submitChoice;
+        vm.toggleSuggestion = toggleSuggestion;
 
         function alreadySelected() {
             vm.dropdownHelpText = HELP_TEXT_SELECTED;
         }
 
-        function removeChoice(choice, index) {
+        function removeChoice(choice) {
             choice.selected = false;
+            var index = _.findIndex(vm.selected, choice);
             vm.selected.splice(index, 1);
         }
 
@@ -84,19 +85,6 @@
             }
         }
 
-        function findName(collection, name) {
-            var result = undefined;
-
-            angular.forEach(collection, function (item) {
-                if (item.name === name) {
-                    result = item;
-                    return false;
-                }
-            });
-
-            return result;
-        }
-
         function createNewChoice() {
             if (!vm.canAddChoice) {
                 return;
@@ -112,11 +100,15 @@
         }
 
         function findInChoices() {
-            return findName(vm.selected, vm.selectInput);
+            return _.find(vm.selected, function (item) {
+                return item.name === vm.selectInput;
+            });
         }
 
         function findInResults() {
-            return findName(vm.resultsList, vm.selectInput);
+            return _.find(vm.resultsList, function (item) {
+                return item.name === vm.selectInput;
+            });
         }
 
         function addResult(result) {
@@ -143,6 +135,14 @@
 
         function setInputFocus() {
             inputElement[0].focus();
+        }
+
+        function toggleSuggestion(suggestion) {
+            if(suggestion.selected) {
+                vm.removeChoice(suggestion);
+            } else {
+                vm.addResult(suggestion);
+            }
         }
 
         vm.resultsList = [

@@ -4,9 +4,7 @@
     angular
         .module('py-angular-multiselect', [])
         .directive('pyAngularMultiselect', pyAngularMultiselect)
-        .controller('pyAngularMultiselectController', pyAngularMultiselectController)
-        .filter('pyHighlight', pyHighlight);
-
+        .controller('pyAngularMultiselectController', pyAngularMultiselectController);
 
     /* @ngInject */
     function pyAngularMultiselect() {
@@ -52,43 +50,137 @@
 
         var inputElement = $element[0].getElementsByClassName('multi-select-input-search');
 
+        vm.dropdownHelpText = HELP_TEXT_NEW;
+        vm.focusIndex = 0;
         vm.selected = vm.selected || [];
         vm.selectInput = '';
-        vm.dropdownHelpText = HELP_TEXT_NEW;
 
-        vm.alreadySelected = alreadySelected;
         vm.addResult = addResult;
-        vm.createNewChoice = createNewChoice;
+        vm.alreadySelected = alreadySelected;
+        vm.changeSuggestedHelpText = changeSuggestedHelpText;
         vm.clearInput = clearInput;
-        vm.findInResults = findInResults;
+        vm.createNewChoice = createNewChoice;
         vm.findInChoices = findInChoices;
-        vm.getFirstSelectableResult = getFirstSelectableResult;
-        vm.inputKeypress = inputKeypress;
+        vm.findIndexInResults = findIndexInResults;
+        vm.findInResults = findInResults;
         vm.inputChange = inputChange;
+        vm.inputKeypress = inputKeypress;
         vm.removeChoice = removeChoice;
         vm.removeLastFromChoices = removeLastFromChoices;
+        vm.setFocusToSuggestion = setFocusToSuggestion;
         vm.setInputFocus = setInputFocus;
-        vm.submitChoice = submitChoice;
         vm.toggleSuggestion = toggleSuggestion;
-        vm.resetSuggestedFocus = resetSuggestedFocus;
 
         initialize();
 
-        function initialize () {
-            vm.focusIndex = 0;
+        function initialize() {
+            if (vm.canAddChoice) {
+                vm.resultsList.unshift({id: 'stub'});
+            }
         }
 
-        function resetSuggestedFocus () {
-            _.forEach(vm.resultsList, function(result, index) {
-                if(!result.selected) {
-                    vm.focusIndex = index;
-                    return false;
-                }
-            });
+        function addResult(result) {
+            if (result.selected) {
+                return;
+            }
+            result.selected = true;
+            vm.selected.push(result);
+
+        }
+
+        function changeSuggestedHelpText() {
+            if (vm.findInChoices()) {
+                return vm.alreadySelected();
+            }
+            if (vm.findIndexInResults() >= 0) {
+                return vm.dropdownHelpText = HELP_TEXT_SUGGESTED;
+            }
+            vm.dropdownHelpText = HELP_TEXT_NEW;
         }
 
         function alreadySelected() {
             vm.dropdownHelpText = HELP_TEXT_SELECTED;
+        }
+
+        function clearInput() {
+            vm.selectInput = '';
+        }
+
+        function createNewChoice() {
+            var found = vm.findInChoices();
+            if (found) {
+                return;
+            }
+
+            var newChoice = {
+                name: vm.selectInput
+            };
+
+            vm.addResult(newChoice);
+            vm.clearInput();
+        }
+
+        function findInChoices() {
+            return _.find(vm.selected, function (item) {
+                return item.name === vm.selectInput;
+            });
+        }
+
+        function findIndexInResults() {
+            return _.findIndex(vm.resultsList, function (item) {
+                return item.name === vm.selectInput;
+            });
+        }
+
+        function findInResults() {
+            return _.find(vm.resultsList, function (item) {
+                return item.name === vm.selectInput;
+            });
+        }
+
+        function inputChange() {
+            if (vm.canAddChoice) {
+                vm.focusIndex = 0;
+            }
+            vm.setFocusToSuggestion();
+            vm.changeSuggestedHelpText();
+        }
+
+        function inputKeypress(event) {
+
+            //backspace or delete
+            if (!vm.selectInput && event.keyCode === 8) {
+                return vm.removeLastFromChoices();
+            }
+
+            if (!vm.selectInput) {
+                return;
+            }
+
+            //enter
+            if (event.keyCode === 13) {
+                return vm.toggleSuggestion(vm.resultsList[vm.focusIndex]);
+            }
+
+            //keydown
+            if (event.keyCode === 40) {
+                event.preventDefault();
+                if (vm.focusIndex >= vm.resultsList.length - 1) {
+                    return vm.focusIndex = vm.resultsList.length - 1;
+                }
+
+                return vm.focusIndex++;
+            }
+
+            //keyup
+            if (event.keyCode === 38) {
+                event.preventDefault();
+                if (vm.focusIndex <= 0) {
+                    return vm.focusIndex = 0;
+                }
+
+                return vm.focusIndex--;
+            }
         }
 
         function removeChoice(choice) {
@@ -105,122 +197,10 @@
             }
         }
 
-        function inputChange() {
-            var found = vm.findInChoices();
-            if (found) {
-                return vm.alreadySelected();
-            }
-            found = _.findIndex(vm.resultsList, function(item) {
-                return item.name === vm.selectInput;
-            });
+        function setFocusToSuggestion() {
+            var found = vm.findIndexInResults();
             if (found >= 0) {
                 vm.focusIndex = found;
-                return vm.dropdownHelpText = HELP_TEXT_SUGGESTED;
-            }
-            vm.dropdownHelpText = HELP_TEXT_NEW;
-        }
-
-        function inputKeypress(event) {
-            //backspace or delete
-            if (!vm.selectInput && event.keyCode === 8) {
-                return vm.removeLastFromChoices();
-            }
-
-            if(!vm.selectInput) {
-                return;
-            }
-
-            //enter
-            if(event.keyCode === 13) {
-                vm.addResult(vm.resultsList[vm.focusIndex]);
-                vm.resetSuggestedFocus();
-            }
-
-            //keydown
-            if(event.keyCode === 40) {
-                event.preventDefault();
-                if(vm.focusIndex >= vm.resultsList.length - 1) {
-                    return vm.focusIndex = vm.resultsList.length - 1;
-                }
-
-                for(var i = vm.focusIndex + 1; i <= vm.resultsList.length; i++) {
-                    if(vm.resultsList[i] && !vm.resultsList[i].selected) {
-                        vm.focusIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            //keyup
-            if(event.keyCode === 38) {
-                event.preventDefault();
-                if(vm.focusIndex <= 0) {
-                    return vm.focusIndex = 0;
-                }
-
-                for(var i = vm.focusIndex - 1; i >= 0; i--) {
-                    if(vm.resultsList[i] && !vm.resultsList[i].selected) {
-                        vm.focusIndex = i;
-                        break;
-                    }
-                }
-            }
-        }
-
-        function createNewChoice() {
-            if (!vm.canAddChoice) {
-                return;
-            }
-
-            return {
-                name: vm.selectInput
-            };
-        }
-
-        function clearInput() {
-            vm.selectInput = '';
-        }
-
-        function findInChoices() {
-            return _.find(vm.selected, function (item) {
-                return item.name === vm.selectInput;
-            });
-        }
-
-        function getFirstSelectableResult() {
-            return _.find(vm.resultsList, function (item) {
-                return !item.selected;
-            });
-        }
-
-        function findInResults() {
-            return _.find(vm.resultsList, function (item) {
-                return item.name === vm.selectInput;
-            });
-        }
-
-        function addResult(result) {
-            if (result.selected) {
-                return;
-            }
-            result.selected = true;
-            vm.selected.push(result);
-
-        }
-
-        function submitChoice() {
-            if (vm.selectInput) {
-                var found = vm.findInChoices();
-                if (found) {
-                    return;
-                }
-
-                found = vm.findInResults() || vm.createNewChoice();
-                if (found) {
-                    vm.clearInput();
-                    vm.addResult(found);
-                    vm.resetSuggestedFocus();
-                }
             }
         }
 
@@ -228,25 +208,20 @@
             inputElement[0].focus();
         }
 
-        function toggleSuggestion(suggestion, index) {
+        function toggleSuggestion(suggestion) {
             vm.setInputFocus();
 
-            suggestion.selected ? vm.removeChoice(suggestion) : vm.addResult(suggestion);
-
-            if(index === vm.focusIndex) {
-                vm.resetSuggestedFocus();
-            }
-        }
-    }
-
-    function pyHighlight($sce) {
-        return function(text, phrase) {
-            if (phrase) {
-                var regex = new RegExp('('+phrase+')', 'gi');
-                text = text.replace(regex, '<span class="highlighted">$1</span>');
+            if (vm.canAddChoice && vm.focusIndex === 0) {
+                return vm.createNewChoice();
             }
 
-            return $sce.trustAsHtml(text)
+            if (suggestion.selected) {
+                vm.removeChoice(suggestion);
+                return vm.changeSuggestedHelpText();
+            }
+            vm.addResult(suggestion);
+            return vm.changeSuggestedHelpText();
+
         }
     }
 })();

@@ -4,7 +4,9 @@
     angular
         .module('py-angular-multiselect', [])
         .directive('pyAngularMultiselect', pyAngularMultiselect)
-        .controller('pyAngularMultiselectController', pyAngularMultiselectController);
+        .controller('pyAngularMultiselectController', pyAngularMultiselectController)
+        .filter('pyHighlight', pyHighlight);
+
 
     /* @ngInject */
     function pyAngularMultiselect() {
@@ -42,6 +44,7 @@
         vm.clearInput = clearInput;
         vm.findInResults = findInResults;
         vm.findInChoices = findInChoices;
+        vm.getFirstSelectableResult = getFirstSelectableResult;
         vm.inputKeypress = inputKeypress;
         vm.inputChange = inputChange;
         vm.removeChoice = removeChoice;
@@ -105,7 +108,17 @@
             });
         }
 
+        function getFirstSelectableResult() {
+            return _.find(vm.resultsList, function (item) {
+                return !item.selected;
+            });
+        }
+
         function findInResults() {
+            if(!vm.canAddChoice) {
+                return vm.getFirstSelectableResult();
+            }
+
             return _.find(vm.resultsList, function (item) {
                 return item.name === vm.selectInput;
             });
@@ -128,8 +141,10 @@
                 }
 
                 found = vm.findInResults() || vm.createNewChoice();
-                vm.clearInput();
-                vm.addResult(found);
+                if (found) {
+                    vm.clearInput();
+                    vm.addResult(found);
+                }
             }
         }
 
@@ -163,5 +178,16 @@
             }
         ]
 
+    }
+
+    function pyHighlight($sce) {
+        return function(text, phrase) {
+            if (phrase) {
+                var regex = new RegExp('('+phrase+')', 'gi');
+                text = text.replace(regex, '<span class="highlighted">$1</span>');
+            }
+
+            return $sce.trustAsHtml(text)
+        }
     }
 })();

@@ -30,16 +30,17 @@
         <ul class="multi-suggestions-ul">
             <md-list-item
                     class="multi-suggestions-li"
-                    ng-click="vm.submitChoice()">
-
+                    ng-click="vm.submitChoice()"
+                    ng-if="vm.canAddChoice">
                 <p>{{vm.selectInput}} {{vm.dropdownHelpText}}</p>
             </md-list-item>
             <md-list-item
+                    aria-label="list-item {{$index}}"
                     class="multi-suggestions-li result-active"
                     ng-repeat="result in vm.resultsList"
                     ng-click="vm.toggleSuggestion(result)"
                     ng-class="result.selected ? 'suggestions-selected' : 'result-active'">
-                <p>{{result.name}}</p>
+                <p ng-bind-html="result.name | pyHighlight:vm.selectInput"></p>
                 <md-checkbox ng-checked="result.selected" aria-label="Checkbox {{$index}}"></md-checkbox>
                 <span style="float:right">
                 </span>

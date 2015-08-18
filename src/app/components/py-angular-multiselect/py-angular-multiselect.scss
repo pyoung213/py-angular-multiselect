@@ -7,6 +7,10 @@
         outline: 0;
     }
 
+    .highlighted {
+        color: lighten(rgb(33,33,33), 30%);
+    }
+
     .multi-select-choice-ul {
         display:flex;
         flex-wrap: wrap;

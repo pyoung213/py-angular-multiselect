@@ -106,11 +106,11 @@
             padding: 0;
         }
 
-        .multi-suggestions-li {
+        .multi-suggestion-li {
             cursor: pointer;
             font-size: 14px;
             overflow: hidden;
-            padding: 0;
+            padding: 0 15px;
             line-height: 48px;
             height: 48px;
             transition: background .15s linear;
@@ -120,13 +120,18 @@
             color: rgb(33,33,33);
             list-style-position: inside;
 
-            &:hover {
-                background: rgb(238,238,238);
-            }
-
-            &.suggestions-selected {
+            &.suggestion-selected {
                 color: lighten(rgb(33,33,33), 70%);
             }
+
+            &.suggestion-focused {
+                background: #eee;
+            }
+        }
+
+        .multi-suggestion-title {
+            line-height: 48px;
+            height: 48px;
         }
     }
 }

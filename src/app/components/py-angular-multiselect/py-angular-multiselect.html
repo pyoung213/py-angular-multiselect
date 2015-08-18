@@ -28,23 +28,22 @@
     </ul>
     <div class="multi-suggestions-dropdown" ng-show="vm.selectInput">
         <ul class="multi-suggestions-ul">
-            <md-list-item
-                    class="multi-suggestions-li"
+            <li
+                    class="multi-suggestion-li"
                     ng-click="vm.submitChoice()"
                     ng-if="vm.canAddChoice">
-                <p>{{vm.selectInput}} {{vm.dropdownHelpText}}</p>
-            </md-list-item>
-            <md-list-item
+                <span class="multi-suggestion-title">{{vm.selectInput}} {{vm.dropdownHelpText}}</span>
+            </li>
+            <li
                     aria-label="list-item {{$index}}"
-                    class="multi-suggestions-li result-active"
+                    tabindex="{{$index}}"
+                    class="multi-suggestion-li"
                     ng-repeat="result in vm.resultsList"
-                    ng-click="vm.toggleSuggestion(result)"
-                    ng-class="result.selected ? 'suggestions-selected' : 'result-active'">
-                <p ng-bind-html="result.name | pyHighlight:vm.selectInput"></p>
+                    ng-click="vm.toggleSuggestion(result, $index)"
+                    ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index == vm.focusIndex}">
+                <span class="multi-suggestion-title" ng-bind="result.name"></span>
                 <md-checkbox ng-checked="result.selected" aria-label="Checkbox {{$index}}"></md-checkbox>
-                <span style="float:right">
-                </span>
-            </md-list-item>
+            </li>
         </ul>
     </div>
 </div>

@@ -20,20 +20,23 @@
                     placeholder="{{vm.placeholder}}"
                     ng-keydown="vm.inputKeypress($event)"
                     ng-change="vm.inputChange()"
+                    ng-blur="vm.onBlurInput($event)"
+                    ng-focus="vm.onFocusInput()"
+                    maxlength="{{vm.maxLengthInput}}"
                     />
         </li>
     </ul>
-    <div class="multi-suggestions-dropdown" ng-show="vm.selectInput">
+    <div class="multi-suggestions-dropdown" ng-hide="vm.hideSuggestionsDropdown">
         <ul class="multi-suggestions-ul">
             <li
                     aria-label="list-item {{$index}}"
                     tabindex="{{$index}}"
                     class="multi-suggestion-li"
                     ng-repeat="result in vm.resultsList"
-                    ng-click="vm.toggleSuggestion(result)"
+                    ng-click="vm.toggleSuggestion(result, $event)"
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index == vm.focusIndex}">
 
-                <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.selectInput}} {{vm.dropdownHelpText}}</span>
+                <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>
                 <div ng-if="!vm.canAddChoice || vm.canAddChoice && !$first">
                     <span class="multi-suggestion-title" ng-bind="result.name"></span>
                     <md-checkbox ng-checked="result.selected" aria-label="Checkbox {{$index}}"></md-checkbox>

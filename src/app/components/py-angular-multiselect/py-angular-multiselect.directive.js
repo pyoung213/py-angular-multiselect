@@ -374,6 +374,10 @@
         function setInputFocus() {
             vm.chipFocus = -1;
             inputElement[0].focus();
+            if(vm.selectInput) {
+                var textLength = vm.selectInput.length;
+                inputElement[0].setSelectionRange(textLength, textLength);
+            }
         }
 
         function toggleSuggestion(suggestion) {

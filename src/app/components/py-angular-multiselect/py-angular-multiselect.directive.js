@@ -24,7 +24,7 @@
         return directive;
     }
 
-    function pyAngularMultiselectController($element, $timeout, MultiselectHelper) {
+    function pyAngularMultiselectController($element, $timeout, $log, MultiselectHelper) {
         var vm = this;
 
         vm.resultsList = [
@@ -48,14 +48,16 @@
         var HELP_TEXT_NEW = "(Create New)";
         var HELP_TEXT_SELECTED = "(Already Selected)";
         var HELP_TEXT_SUGGESTED = "(Suggested)";
-        var isCaseSensitive = false;
-        var createNewOptions = {
+        vm.createNewOptions = {
             case: "camelcase",  // options: none, uppercase, lowercase, camelcase, capitalize, kebabcase, snakecase, startcase, nowhitespace;
             prepend: '#'
         };
-        var onFocusShowDropdown = true;
+        vm.onFocusShowDropdown  = true;
+        vm.maxChipsAmount = 5;
+        vm.isCaseSensitive = false;
 
-        var inputElement = $element[0].getElementsByClassName('multi-select-input-search');
+
+        vm.inputElement = $element[0].getElementsByClassName('multi-select-input-search');
 
         vm.dropdownHelpText = '';
         vm.focusIndex = 0;
@@ -64,10 +66,12 @@
         vm.chipFocus = -1;
         vm.hideSuggestionsDropdown = true;
         vm.maxLengthInput = 32;
+        vm.maxChipsReached = false;
 
         vm.addResult = addResult;
         vm.caseSensitive = caseSensitive;
         vm.changeSuggestedHelpText = changeSuggestedHelpText;
+        vm.checkMaxChipAmount = checkMaxChipAmount;
         vm.clearInput = clearInput;
         vm.createNewChip = createNewChip;
         vm.findInChips = findInChips;
@@ -77,7 +81,13 @@
         vm.getAdjacentChipIndex = getAdjacentChipIndex;
         vm.onInputChange = onInputChange;
         vm.inputKeypress = inputKeypress;
+        vm.onArrowDown = onArrowDown;
+        vm.onArrowLeft = onArrowLeft;
+        vm.onArrowRight = onArrowRight;
+        vm.onArrowUp = onArrowUp;
+        vm.onBackspace = onBackspace;
         vm.onBlurInput = onBlurInput;
+        vm.onEnter = onEnter;
         vm.onFocusInput = onFocusInput;
         vm.prependCreateNewOptions = prependCreateNewOptions;
         vm.removeAndSelectAdjacentChip = removeAndSelectAdjacentChip;
@@ -96,7 +106,7 @@
             if (vm.canAddChoice) {
                 vm.resultsList.unshift({id: 'stub'});
             }
-
+            vm.checkMaxChipAmount();
             vm.sanitizeSuggestions();
         }
 
@@ -106,27 +116,38 @@
             }
             result.selected = true;
             vm.chips.push(result);
-            return vm.dropdownHelpText = '';
+            vm.checkMaxChipAmount();
+            vm.dropdownHelpText = '';
         }
 
         function changeSuggestedHelpText() {
             if (!vm.selectInput) {
-                return vm.dropdownHelpText = '';
+                vm.dropdownHelpText = '';
+                return;
             }
             if (vm.findInChips()) {
-                return vm.dropdownHelpText = HELP_TEXT_SELECTED;
+                vm.dropdownHelpText = HELP_TEXT_SELECTED;
+                return;
             }
             if (vm.findInSuggestions() >= 0) {
-                return vm.dropdownHelpText = HELP_TEXT_SUGGESTED;
+                vm.dropdownHelpText = HELP_TEXT_SUGGESTED;
+                return;
             }
             vm.dropdownHelpText = HELP_TEXT_NEW;
+        }
+
+        function checkMaxChipAmount() {
+            if(!vm.maxChipsAmount) {
+                return;
+            }
+            vm.maxChipsReached = vm.chips.length >= vm.maxChipsAmount;
         }
 
         function caseSensitive(string) {
             if (!string) {
                 return;
             }
-            if (isCaseSensitive) {
+            if (vm.isCaseSensitive) {
                 return string;
             }
             return string.toLowerCase();
@@ -173,7 +194,8 @@
             vm.chipFocus = index;
             var element = $element[0].querySelector('.py-chip[tabindex="' + index + '"]');
             if (element === null) {
-                debugger;
+                $log.error("focusChip: Could not find index " + index);
+                return;
             }
             element.focus();
         }
@@ -185,7 +207,7 @@
             }
 
             if (index === 0) {
-                return index;
+                return 0;
             }
 
             return index - 1;
@@ -197,7 +219,7 @@
                 vm.focusIndex = 0;
             }
 
-            vm.suggestedCreateText = MultiselectHelper.sanitizeString(vm.selectInput, createNewOptions.case);
+            vm.suggestedCreateText = MultiselectHelper.sanitizeString(vm.selectInput, vm.createNewOptions.case);
             vm.suggestedCreateText = vm.prependCreateNewOptions(vm.suggestedCreateText);
             vm.setFocusToSuggestion();
             vm.changeSuggestedHelpText();
@@ -209,91 +231,102 @@
                 //backspace or delete
                 case 8:
                     console.log('backspace');
-                    if (vm.chipFocus > -1) {
-                        vm.removeAndSelectAdjacentChip(vm.chipFocus);
-                        break;
-                    }
-                    if (!vm.selectInput) {
-                        vm.removeLastFromChoices();
-                        break;
-                    }
+                    vm.onBackspace();
                     break;
                 //left arrow
                 case 37:
                     console.log('arrow left');
-                    if (!vm.chips.length) {
-                        break;
-                    }
-                    if (MultiselectHelper.getCursorPosition(inputElement[0]) === 0) {
-                        if (vm.chipFocus === 0) {
-                            break;
-                        }
-                        if (vm.chipFocus === -1) {
-                            vm.removeInputFocus();
-                            vm.chipFocus = vm.chips.length - 1;
-                            vm.focusChip(vm.chipFocus);
-                            break;
-                        }
-
-                        vm.chipFocus--;
-                        vm.focusChip(vm.chipFocus);
-                        break;
-                    }
+                    vm.onArrowLeft();
                     break;
                 //right arrow
                 case 39:
                     console.log('arrow right');
-                    if (event.keyCode === 39) {
-                        if (vm.chipFocus === -1) {
-                            break;
-                        }
-                        if (vm.chipFocus + 1 === vm.chips.length) {
-                            vm.chipFocus = -1;
-                            vm.setInputFocus();
-                            break;
-                        }
-                        vm.chipFocus++;
-                        break;
-                    }
+                    vm.onArrowRight();
                     break;
                 //enter
                 case 13:
                     console.log('enter');
-                    if(vm.chipFocus > -1) {
-                        vm.removeAndSelectAdjacentChip(vm.chipFocus);
-                        break;
-                    }
-                    vm.toggleSuggestion(vm.resultsList[vm.focusIndex]);
+                    vm.onEnter();
                     break;
                 //keydown
                 case 40:
                     console.log('keydown');
                     event.preventDefault();
-                    if(vm.chipFocus > -1) {
-                        break;
-                    }
-
-                    if (vm.focusIndex >= vm.resultsList.length - 1) {
-                        vm.focusIndex = vm.resultsList.length - 1;
-                        break;
-                    }
-
-                    vm.focusIndex++;
+                    vm.onArrowDown();
                     break;
                 //keyup
                 case 38:
                     console.log('keyup');
                     event.preventDefault();
-                    if(vm.chipFocus > -1) {
-                        break;
-                    }
-                    if (vm.focusIndex <= 0) {
-                        vm.focusIndex = 0;
-                        break;
-                    }
-
-                    vm.focusIndex--;
+                    vm.onArrowUp();
                     break;
+            }
+        }
+
+        function onArrowDown() {
+            if(vm.chipFocus > -1) {
+               return;
+            }
+
+            if (vm.focusIndex >= vm.resultsList.length - 1) {
+                vm.focusIndex = vm.resultsList.length - 1;
+                return;
+            }
+
+            vm.focusIndex++;
+        }
+
+        function onArrowLeft() {
+            if (!vm.chips.length) {
+                return;
+            }
+            if (MultiselectHelper.getCursorPosition(vm.inputElement[0]) === 0) {
+                if (vm.chipFocus === 0) {
+                    return;
+                }
+                if (vm.chipFocus === -1) {
+                    vm.removeInputFocus();
+                    vm.chipFocus = vm.chips.length - 1;
+                    vm.focusChip(vm.chipFocus);
+                    return;
+                }
+
+                vm.chipFocus--;
+                vm.focusChip(vm.chipFocus);
+            }
+        }
+
+        function onArrowRight() {
+            if (vm.chipFocus === -1) {
+                return;
+            }
+            if (vm.chipFocus + 1 === vm.chips.length) {
+                vm.chipFocus = -1;
+                vm.setInputFocus();
+                return;
+            }
+            vm.chipFocus++;
+        }
+
+        function onArrowUp() {
+            if(vm.chipFocus > -1) {
+                return;
+            }
+            if (vm.focusIndex <= 0) {
+                vm.focusIndex = 0;
+                return;
+            }
+
+            vm.focusIndex--;
+        }
+
+        function onBackspace() {
+            if (vm.chipFocus > -1) {
+                vm.removeAndSelectAdjacentChip(vm.chipFocus);
+                return;
+            }
+            if (MultiselectHelper.getCursorPosition(vm.inputElement[0]) === 0) {
+                vm.removeLastFromChoices();
             }
         }
 
@@ -303,15 +336,23 @@
             }
         }
 
+        function onEnter() {
+            if(vm.chipFocus > -1) {
+                vm.removeAndSelectAdjacentChip(vm.chipFocus);
+                return;
+            }
+            vm.toggleSuggestion(vm.resultsList[vm.focusIndex]);
+        }
+
         function onFocusInput() {
             vm.chipFocus = -1;
-            if (onFocusShowDropdown) {
+            if (vm.onFocusShowDropdown) {
                 vm.hideSuggestionsDropdown = false;
             }
         }
 
         function prependCreateNewOptions(string) {
-            var prependString = createNewOptions.prepend;
+            var prependString = vm.createNewOptions.prepend;
 
             if (!prependString) {
                 return string;
@@ -320,13 +361,16 @@
             if (!_.startsWith(string.toLowerCase(), prependString)) {
                 return prependString.concat(string);
             }
+
+            return string;
         }
 
         function removeAndSelectAdjacentChip(index) {
             var adjacentIndex = vm.getAdjacentChipIndex(index);
             if (adjacentIndex === -1) {
                 vm.removeChip(vm.chips[index]);
-                return vm.setInputFocus();
+                vm.setInputFocus();
+                return;
             }
             vm.removeChip(vm.chips[index]);
             //timeout helps with focus of last element.
@@ -339,15 +383,17 @@
             chip.selected = false;
             var index = _.findIndex(vm.chips, chip);
             vm.chips.splice(index, 1);
-            console.log('removed chip', chip);
             if (chip.name === vm.suggestedCreateText) {
                 vm.clearInput();
             }
-            vm.setInputFocus();
+            vm.checkMaxChipAmount();
+            $timeout(function() {
+                vm.setInputFocus();
+            });
         }
 
         function removeInputFocus() {
-            inputElement[0].blur();
+            vm.inputElement[0].blur();
         }
 
         function removeLastFromChoices() {
@@ -360,7 +406,7 @@
         function sanitizeSuggestions() {
             _.forEach(vm.resultsList, function (item) {
                 if (item.name) {
-                    item.name = MultiselectHelper.sanitizeString(item.name, createNewOptions.case);
+                    item.name = MultiselectHelper.sanitizeString(item.name, vm.createNewOptions.case);
                     item.name = vm.prependCreateNewOptions(item.name);
                 }
             });
@@ -375,10 +421,10 @@
 
         function setInputFocus() {
             vm.chipFocus = -1;
-            inputElement[0].focus();
+            vm.inputElement[0].focus();
             if(vm.selectInput) {
                 var textLength = vm.selectInput.length;
-                inputElement[0].setSelectionRange(textLength, textLength);
+                vm.inputElement[0].setSelectionRange(textLength, textLength);
             }
         }
 
@@ -388,16 +434,17 @@
         }
 
         function toggleSuggestion(suggestion) {
-            console.log('toggle', suggestion);
             vm.setInputFocus();
 
             if (vm.canAddChoice && vm.focusIndex === 0 && vm.chipFocus === -1) {
-                return vm.createNewChip();
+                vm.createNewChip();
+                return;
             }
 
             if (suggestion.selected) {
                 vm.removeChip(suggestion);
-                return vm.changeSuggestedHelpText();
+                vm.changeSuggestedHelpText();
+                return;
             }
             vm.addResult(suggestion);
 
@@ -405,8 +452,8 @@
                 vm.clearInput();
             }
 
-            return vm.changeSuggestedHelpText();
-
+            vm.changeSuggestedHelpText();
+            return;
         }
     }
 
@@ -439,8 +486,9 @@
             }
 
             // Firefox support
-            else if (element.selectionStart || element.selectionStart == '0')
+            else if (element.selectionStart || element.selectionStart === 0) {
                 iCaretPos = element.selectionStart;
+            }
 
             // Return results
             return iCaretPos;

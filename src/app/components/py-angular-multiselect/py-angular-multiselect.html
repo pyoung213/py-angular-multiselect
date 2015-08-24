@@ -20,6 +20,7 @@
         </li>
         <li class="multi-select-input-search-li">
             <input
+                    ng-hide="vm.maxChipsReached"
                     class="multi-select-input-search"
                     type="text"
                     ng-model="vm.selectInput"
@@ -30,6 +31,7 @@
                     maxlength="{{vm.maxLengthInput}}"
                     ng-keydown="vm.inputKeypress($event)"
                     />
+            <span ng-show="vm.maxChipsReached" class="multi-select-input-search">Max Tags Reached!</span>
         </li>
     </ul>
     <div class="multi-suggestions-dropdown" ng-hide="vm.hideSuggestionsDropdown">

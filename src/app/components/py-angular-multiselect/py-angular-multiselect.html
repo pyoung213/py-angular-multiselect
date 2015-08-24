@@ -1,6 +1,12 @@
 <div class="multi-select-container">
     <ul class="multi-select-choice-ul">
-        <li ng-repeat="choice in vm.selected" class="multi-select-choice-li" ng-click="vm.removeChoice(choice, $index)">
+        <li
+                ng-repeat="choice in vm.chips"
+                class="multi-select-choice-li py-chip"
+                ng-class="{'chip-focused': $index === vm.chipFocus}"
+                ng-click="vm.removeChip(choice, $index)"
+                tabindex="{{$index}}"
+                ng-keydown="vm.inputKeypress($event)">
             <span class="multi-select-choice-content">{{choice.name}}</span>
             <button class="multi-select-choice-close">
                 <svg class="multi-select-close-svg" version="1.1" x="0px" y="0px" viewBox="0 0 24 24"
@@ -18,11 +24,11 @@
                     type="text"
                     ng-model="vm.selectInput"
                     placeholder="{{vm.placeholder}}"
-                    ng-keydown="vm.inputKeypress($event)"
-                    ng-change="vm.inputChange()"
+                    ng-change="vm.onInputChange()"
                     ng-blur="vm.onBlurInput($event)"
                     ng-focus="vm.onFocusInput()"
                     maxlength="{{vm.maxLengthInput}}"
+                    ng-keydown="vm.inputKeypress($event)"
                     />
         </li>
     </ul>
@@ -34,12 +40,12 @@
                     class="multi-suggestion-li"
                     ng-repeat="result in vm.resultsList"
                     ng-click="vm.toggleSuggestion(result, $event)"
-                    ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index == vm.focusIndex}">
+                    ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 
                 <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>
                 <div ng-if="!vm.canAddChoice || vm.canAddChoice && !$first">
                     <span class="multi-suggestion-title" ng-bind="result.name"></span>
-                    <md-checkbox ng-checked="result.selected" aria-label="Checkbox {{$index}}"></md-checkbox>
+                    <md-checkbox ng-checked="result.chips" aria-label="Checkbox {{$index}}"></md-checkbox>
                 </div>
             </li>
         </ul>

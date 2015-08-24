@@ -39,7 +39,7 @@
                     tabindex="{{$index}}"
                     class="multi-suggestion-li"
                     ng-repeat="result in vm.resultsList"
-                    ng-click="vm.toggleSuggestion(result, $event)"
+                    ng-click="vm.suggestionClick(result, $index)"
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 
                 <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>

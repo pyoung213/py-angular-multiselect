@@ -87,6 +87,7 @@
         vm.sanitizeSuggestions = sanitizeSuggestions;
         vm.setFocusToSuggestion = setFocusToSuggestion;
         vm.setInputFocus = setInputFocus;
+        vm.suggestionClick = suggestionClick;
         vm.toggleSuggestion = toggleSuggestion;
 
         initialize();
@@ -342,6 +343,7 @@
             if (chip.name === vm.suggestedCreateText) {
                 vm.clearInput();
             }
+            vm.setInputFocus();
         }
 
         function removeInputFocus() {
@@ -380,7 +382,13 @@
             }
         }
 
+        function suggestionClick(suggestion, index) {
+            vm.focusIndex = index;
+            vm.toggleSuggestion(suggestion);
+        }
+
         function toggleSuggestion(suggestion) {
+            console.log('toggle', suggestion);
             vm.setInputFocus();
 
             if (vm.canAddChoice && vm.focusIndex === 0 && vm.chipFocus === -1) {

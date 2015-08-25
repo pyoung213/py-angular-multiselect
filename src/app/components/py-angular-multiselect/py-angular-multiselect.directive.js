@@ -70,12 +70,13 @@
 
         vm.addResult = addResult;
         vm.caseSensitive = caseSensitive;
-        vm.changeSuggestedHelpText = changeSuggestedHelpText;
+        vm.getSuggestedHelpText = getSuggestedHelpText;
         vm.checkMaxChipAmount = checkMaxChipAmount;
         vm.clearInput = clearInput;
+        vm.clearInputIfNameMatches = clearInputIfNameMatches;
         vm.createNewChip = createNewChip;
         vm.findInChips = findInChips;
-        vm.findInSuggestions = findInSuggestions;
+        vm.findIndexInSuggestions = findIndexInSuggestions;
         vm.findInResults = findInResults;
         vm.focusChip = focusChip;
         vm.getAdjacentChipIndex = getAdjacentChipIndex;
@@ -120,20 +121,17 @@
             vm.dropdownHelpText = '';
         }
 
-        function changeSuggestedHelpText() {
+        function getSuggestedHelpText() {
             if (!vm.selectInput) {
-                vm.dropdownHelpText = '';
-                return;
+                return '';
             }
             if (vm.findInChips()) {
-                vm.dropdownHelpText = HELP_TEXT_SELECTED;
-                return;
+                return HELP_TEXT_SELECTED;
             }
-            if (vm.findInSuggestions() >= 0) {
-                vm.dropdownHelpText = HELP_TEXT_SUGGESTED;
-                return;
+            if (vm.findIndexInSuggestions() >= 0) {
+                return HELP_TEXT_SUGGESTED;
             }
-            vm.dropdownHelpText = HELP_TEXT_NEW;
+            return HELP_TEXT_NEW;
         }
 
         function checkMaxChipAmount() {
@@ -158,9 +156,14 @@
             vm.suggestedCreateText = '';
         }
 
+        function clearInputIfNameMatches(name) {
+            if (name === vm.selectInput) {
+                vm.clearInput();
+            }
+        }
+
         function createNewChip() {
-            var found = vm.findInChips();
-            if (found || !vm.selectInput) {
+            if (vm.findInChips() || !vm.selectInput) {
                 return;
             }
 
@@ -178,7 +181,7 @@
             });
         }
 
-        function findInSuggestions() {
+        function findIndexInSuggestions() {
             return _.findIndex(vm.resultsList, function (item) {
                 return vm.caseSensitive(item.name) === vm.caseSensitive(vm.suggestedCreateText);
             });
@@ -222,7 +225,7 @@
             vm.suggestedCreateText = MultiselectHelper.sanitizeString(vm.selectInput, vm.createNewOptions.case);
             vm.suggestedCreateText = vm.prependCreateNewOptions(vm.suggestedCreateText);
             vm.setFocusToSuggestion();
-            vm.changeSuggestedHelpText();
+            vm.dropdownHelpText = vm.getSuggestedHelpText();
         }
 
         function inputKeypress(event) {
@@ -230,33 +233,27 @@
             switch (event.keyCode) {
                 //backspace or delete
                 case 8:
-                    console.log('backspace');
                     vm.onBackspace();
                     break;
                 //left arrow
                 case 37:
-                    console.log('arrow left');
                     vm.onArrowLeft();
                     break;
                 //right arrow
                 case 39:
-                    console.log('arrow right');
                     vm.onArrowRight();
                     break;
                 //enter
                 case 13:
-                    console.log('enter');
                     vm.onEnter();
                     break;
                 //keydown
                 case 40:
-                    console.log('keydown');
                     event.preventDefault();
                     vm.onArrowDown();
                     break;
                 //keyup
                 case 38:
-                    console.log('keyup');
                     event.preventDefault();
                     vm.onArrowUp();
                     break;
@@ -383,9 +380,7 @@
             chip.selected = false;
             var index = _.findIndex(vm.chips, chip);
             vm.chips.splice(index, 1);
-            if (chip.name === vm.suggestedCreateText) {
-                vm.clearInput();
-            }
+            vm.clearInputIfNameMatches(chip.name);
             vm.checkMaxChipAmount();
             $timeout(function() {
                 vm.setInputFocus();
@@ -413,7 +408,7 @@
         }
 
         function setFocusToSuggestion() {
-            var found = vm.findInSuggestions();
+            var found = vm.findIndexInSuggestions();
             if (found >= 0) {
                 vm.focusIndex = found;
             }
@@ -443,17 +438,12 @@
 
             if (suggestion.selected) {
                 vm.removeChip(suggestion);
-                vm.changeSuggestedHelpText();
+                vm.dropdownHelpText = vm.getSuggestedHelpText();
                 return;
             }
             vm.addResult(suggestion);
-
-            if (suggestion.name === vm.suggestedCreateText) {
-                vm.clearInput();
-            }
-
-            vm.changeSuggestedHelpText();
-            return;
+            vm.clearInputIfNameMatches(suggestion.name);
+            vm.dropdownHelpText = vm.getSuggestedHelpText();
         }
     }
 

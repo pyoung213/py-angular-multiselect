@@ -57,38 +57,37 @@
         it('should change suggested help text to blank', function() {
             vm.dropdownHelpText = "whatever";
             vm.selectInput = '';
-            vm.changeSuggestedHelpText();
 
-            expect(vm.dropdownHelpText).toEqual('');
+            expect(vm.getSuggestedHelpText()).toEqual('');
         });
 
         it('should change suggested help text if found in chips', function() {
             spyOn(vm, "findInChips").and.returnValue(true);
             vm.dropdownHelpText = '';
             vm.selectInput = 'something';
-            vm.changeSuggestedHelpText();
+            vm.getSuggestedHelpText();
 
-            expect(vm.dropdownHelpText).toEqual(HELP_TEXT_SELECTED);
+            expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_SELECTED);
         });
 
         it('should change suggested help text if found in suggestions', function() {
             spyOn(vm, "findInChips").and.returnValue(false);
-            spyOn(vm, "findInSuggestions").and.returnValue(1);
+            spyOn(vm, "findIndexInSuggestions").and.returnValue(1);
             vm.dropdownHelpText = '';
             vm.selectInput = 'something';
-            vm.changeSuggestedHelpText();
+            vm.getSuggestedHelpText();
 
-            expect(vm.dropdownHelpText).toEqual(HELP_TEXT_SUGGESTED);
+            expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_SUGGESTED);
         });
 
         it('should change suggested help text to create new', function() {
             spyOn(vm, "findInChips").and.returnValue(false);
-            spyOn(vm, "findInSuggestions").and.returnValue(-1);
+            spyOn(vm, "findIndexInSuggestions").and.returnValue(-1);
             vm.dropdownHelpText = '';
             vm.selectInput = 'something';
-            vm.changeSuggestedHelpText();
+            vm.getSuggestedHelpText();
 
-            expect(vm.dropdownHelpText).toEqual(HELP_TEXT_NEW);
+            expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_NEW);
         });
 
         it('should set max chips reached to false', function() {
@@ -133,6 +132,26 @@
 
             expect(vm.selectInput).toEqual('');
             expect(vm.suggestedCreateText).toEqual('');
+        });
+
+        it('should clear input if name matches selectedText', function() {
+            spyOn(vm, 'clearInput');
+            vm.selectInput = "mock";
+            var name = "mock";
+
+            vm.clearInputIfNameMatches(name);
+
+            expect(vm.clearInput).toHaveBeenCalled();
+        });
+
+        it('should not clear input if name does not matche selectedText', function() {
+            spyOn(vm, 'clearInput');
+            vm.selectInput = "mock";
+            var name = "mock2";
+
+            vm.clearInputIfNameMatches(name);
+
+            expect(vm.clearInput).not.toHaveBeenCalled();
         });
 
         it('should create new chip', function() {
@@ -462,11 +481,11 @@
         });
 
         it('expect to remove chip and clear input if matches name', function() {
-            vm.suggestedCreateText = "something";
+            vm.selectInput = "something";
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'checkMaxChipAmount');
             spyOn(vm, 'clearInput');
-            vm.chips = [{id:1, selected: true, name: vm.suggestedCreateText},{id:2, selected: true}];
+            vm.chips = [{id:1, selected: true, name: vm.selectInput},{id:2, selected: true}];
             vm.removeChip(vm.chips[0]);
             $timeout.flush();
 
@@ -498,7 +517,7 @@
         it('should set focus to suggestion', function() {
             vm.focusIndex = 0;
             var found = 1;
-            spyOn(vm, 'findInSuggestions').and.returnValue(found);
+            spyOn(vm, 'findIndexInSuggestions').and.returnValue(found);
 
             vm.setFocusToSuggestion();
 
@@ -528,27 +547,27 @@
         it('should toggle suggestion', function() {
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'removeChip');
-            spyOn(vm, 'changeSuggestedHelpText');
+            spyOn(vm, 'getSuggestedHelpText');
             vm.canAddChoice = false;
             var suggestion = {name: "mock", selected: true};
 
             vm.toggleSuggestion(suggestion);
 
             expect(vm.setInputFocus).toHaveBeenCalled();
-            expect(vm.changeSuggestedHelpText).toHaveBeenCalled();
+            expect(vm.getSuggestedHelpText).toHaveBeenCalled();
             expect(vm.removeChip).toHaveBeenCalledWith(suggestion);
         });
 
         it('should toggle suggestion', function() {
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'addResult');
-            spyOn(vm, 'changeSuggestedHelpText');
+            spyOn(vm, 'getSuggestedHelpText');
             vm.canAddChoice = false;
             var suggestion = {name: "mock", selected: false};
 
             vm.toggleSuggestion(suggestion);
 
-            expect(vm.changeSuggestedHelpText).toHaveBeenCalled();
+            expect(vm.getSuggestedHelpText).toHaveBeenCalled();
             expect(vm.addResult).toHaveBeenCalledWith(suggestion);
         });
 

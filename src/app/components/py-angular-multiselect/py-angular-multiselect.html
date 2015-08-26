@@ -40,7 +40,7 @@
                     aria-label="list-item {{$index}}"
                     tabindex="{{$index}}"
                     class="multi-suggestion-li"
-                    ng-repeat="result in vm.resultsList"
+                    ng-repeat="result in vm.resultsList | limitTo:vm.maxSuggestions"
                     ng-click="vm.suggestionClick(result, $index)"
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 

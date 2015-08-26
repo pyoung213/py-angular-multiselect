@@ -55,6 +55,7 @@
         };
         vm.onFocusShowDropdown  = true;
         vm.maxChipsAmount = 5;
+        vm.maxSuggestions = null;
         vm.isCaseSensitive = false;
 
 
@@ -107,7 +108,12 @@
         function initialize() {
             if (vm.canAddChoice) {
                 vm.resultsList.unshift({id: 'stub'});
+
+                if(vm.maxSuggestions) {
+                    vm.maxSuggestions++;
+                }
             }
+
             vm.checkMaxChipAmount();
             vm.sanitizeSuggestions();
         }

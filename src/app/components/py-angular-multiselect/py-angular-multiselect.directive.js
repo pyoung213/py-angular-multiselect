@@ -29,25 +29,26 @@
 
         vm.resultsList = [
             {
-                name: "Choice1"
+                title: "Choice1"
             },
             {
-                name: "Choice2"
+                title: "Choice2"
             },
             {
-                name: "choiceThree"
+                title: "choiceThree"
             },
             {
-                name: "Choice_4"
+                title: "Choice_4"
             },
             {
-                name: "Choice-5"
+                title: "Choice-5"
             }
         ];
 
         var HELP_TEXT_NEW = "(Create New)";
         var HELP_TEXT_SELECTED = "(Already Selected)";
         var HELP_TEXT_SUGGESTED = "(Suggested)";
+        vm.name = "title";
         vm.createNewOptions = {
             case: "camelcase",  // options: none, uppercase, lowercase, camelcase, capitalize, kebabcase, snakecase, startcase, nowhitespace;
             prepend: '#'
@@ -167,9 +168,8 @@
                 return;
             }
 
-            var newChoice = {
-                name: vm.suggestedCreateText
-            };
+            var newChoice = {};
+            newChoice[vm.name] =  vm.suggestedCreateText;
 
             vm.addResult(newChoice);
             vm.clearInput();
@@ -177,19 +177,19 @@
 
         function findInChips() {
             return _.find(vm.chips, function (item) {
-                return vm.caseSensitive(item.name) === vm.caseSensitive(vm.suggestedCreateText);
+                return vm.caseSensitive(item[vm.name]) === vm.caseSensitive(vm.suggestedCreateText);
             });
         }
 
         function findIndexInSuggestions() {
             return _.findIndex(vm.resultsList, function (item) {
-                return vm.caseSensitive(item.name) === vm.caseSensitive(vm.suggestedCreateText);
+                return vm.caseSensitive(item[vm.name]) === vm.caseSensitive(vm.suggestedCreateText);
             });
         }
 
         function findInResults() {
             return _.find(vm.resultsList, function (item) {
-                return vm.caseSensitive(item.name) === vm.caseSensitive(vm.suggestedCreateText);
+                return vm.caseSensitive(item[vm.name]) === vm.caseSensitive(vm.suggestedCreateText);
             });
         }
 
@@ -380,7 +380,7 @@
             chip.selected = false;
             var index = _.findIndex(vm.chips, chip);
             vm.chips.splice(index, 1);
-            vm.clearInputIfNameMatches(chip.name);
+            vm.clearInputIfNameMatches(chip[vm.name]);
             vm.checkMaxChipAmount();
             $timeout(function() {
                 vm.setInputFocus();
@@ -400,9 +400,9 @@
 
         function sanitizeSuggestions() {
             _.forEach(vm.resultsList, function (item) {
-                if (item.name) {
-                    item.name = MultiselectHelper.sanitizeString(item.name, vm.createNewOptions.case);
-                    item.name = vm.prependCreateNewOptions(item.name);
+                if (item[vm.name]) {
+                    item[vm.name] = MultiselectHelper.sanitizeString(item[vm.name], vm.createNewOptions.case);
+                    item[vm.name] = vm.prependCreateNewOptions(item[vm.name]);
                 }
             });
         }
@@ -442,7 +442,7 @@
                 return;
             }
             vm.addResult(suggestion);
-            vm.clearInputIfNameMatches(suggestion.name);
+            vm.clearInputIfNameMatches(suggestion[vm.name]);
             vm.dropdownHelpText = vm.getSuggestedHelpText();
         }
     }
@@ -457,31 +457,23 @@
 
         function getCursorPosition(element) {
             // Initialize
-            var iCaretPos = 0;
+            var caretPos = 0;
 
             // IE Support
             if (document.selection) {
-
-                // Set focus on the element
                 element.focus();
-
-                // To get cursor position, get empty selection range
                 var oSel = document.selection.createRange();
-
-                // Move selection start to 0 position
                 oSel.moveStart('character', -element.value.length);
-
-                // The caret position is selection length
-                iCaretPos = oSel.text.length;
+                caretPos = oSel.text.length;
             }
 
             // Firefox support
             else if (element.selectionStart || element.selectionStart === 0) {
-                iCaretPos = element.selectionStart;
+                caretPos = element.selectionStart;
             }
 
             // Return results
-            return iCaretPos;
+            return caretPos;
         }
 
         function sanitizeString(string, type) {

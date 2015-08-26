@@ -22,6 +22,8 @@
             vm = $controller('pyAngularMultiselectController',{
                 $element: element
             });
+
+            vm.name = 'name';
         }));
 
         it('should add result to chips total', function() {

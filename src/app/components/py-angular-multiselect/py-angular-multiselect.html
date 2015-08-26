@@ -7,7 +7,7 @@
                 ng-click="vm.removeChip(choice, $index)"
                 tabindex="{{$index}}"
                 ng-keydown="vm.inputKeypress($event)">
-            <span class="multi-select-choice-content">{{choice.name}}</span>
+            <span class="multi-select-choice-content">{{choice[vm.name]}}</span>
             <button class="multi-select-choice-close">
                 <svg class="multi-select-close-svg" version="1.1" x="0px" y="0px" viewBox="0 0 24 24"
                      xmlns="http://www.w3.org/2000/svg" fit="" height="100%"
@@ -45,9 +45,18 @@
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 
                 <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>
+
                 <div ng-if="!vm.canAddChoice || vm.canAddChoice && !$first">
-                    <span class="multi-suggestion-title" ng-bind="result.name"></span>
-                    <md-checkbox ng-checked="result.chips" aria-label="Checkbox {{$index}}"></md-checkbox>
+                    <span class="multi-suggestion-title" ng-bind="result[vm.name]"></span>
+                    <svg width="120px" height="120px" viewBox="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <g id="svg-checkmark">
+                                <path class="svg-bg-circle" stroke="#E5E5E5" stroke-width="8" d="M60,110 C87.6142375,110 110,87.6142375 110,60 C110,47.4084488 105.345594,35.9039924 97.6634064,27.1132546 C88.4979672,16.6252303 75.0226863,10 60,10 C32.3857625,10 10,32.3857625 10,60 C10,87.6142375 32.3857625,110 60,110 Z"></path>
+                                <path class="svg-overlay-circle" stroke="#979797" stroke-width="8" d="M108.999819,50 L108.999819,50 C109.655697,53.2310994 110,56.5753416 110,60 C110,87.6142375 87.6142375,110 60,110 C32.3857625,110 10,87.6142375 10,60 C10,32.3857625 32.3857625,10 60,10 C63.4246584,10 66.7689006,10.3443026 70,11.0001812" transform="translate(60.000000, 60.000000) rotate(11.000000) translate(-60.000000, -60.000000) "></path>
+                                <path class="svg-checkmark" stroke="#979797" stroke-width="10" d="M34.1173396,49.7114949 L59.1635867,74.7577419 L104.921329,29" stroke-linecap="square"></path>
+                            </g>
+                        </g>
+                    </svg>
                 </div>
             </li>
         </ul>

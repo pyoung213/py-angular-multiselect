@@ -111,6 +111,7 @@
         }
 
         .multi-suggestion-li {
+            position:relative;
             cursor: pointer;
             font-size: 14px;
             overflow: hidden;
@@ -136,6 +137,58 @@
         .multi-suggestion-title {
             line-height: 48px;
             height: 48px;
+        }
+    }
+
+    svg {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        right: 10px;
+        top:10px;
+    }
+
+    .svg-checkmark {
+        display:none;
+        animation: dash 1s ease-in-out forwards;
+    }
+
+    .svg-bg-circle {
+        opacity: 1;
+    }
+
+    .svg-overlay-circle {
+        display:none;
+        animation: dash 0.3s ease-in-out forwards;
+    }
+
+    .suggestion-selected {
+        .svg-checkmark {
+            display:block;
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+        }
+
+        .svg-bg-circle {
+            opacity: 0;
+        }
+
+        .svg-overlay-circle {
+            display:block;
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+        }
+    }
+
+    .suggestion-focused {
+        .svg-bg-circle {
+            stroke:#CCCCCC;
+        }
+    }
+
+    @keyframes dash {
+        to {
+            stroke-dashoffset: 0;
         }
     }
 }

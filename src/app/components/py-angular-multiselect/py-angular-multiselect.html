@@ -23,7 +23,7 @@
                     ng-hide="vm.maxChipsReached"
                     class="multi-select-input-search"
                     type="text"
-                    ng-model="vm.selectInput"
+                    ng-model="vm.searchText"
                     placeholder="{{vm.placeholder}}"
                     ng-change="vm.onInputChange()"
                     ng-blur="vm.onBlurInput($event)"
@@ -40,7 +40,7 @@
                     aria-label="list-item {{$index}}"
                     tabindex="{{$index}}"
                     class="multi-suggestion-li"
-                    ng-repeat="result in vm.resultsList | limitTo:vm.maxSuggestions"
+                    ng-repeat="result in vm.suggestionList | limitTo:vm.maxSuggestions"
                     ng-click="vm.suggestionClick(result, $index)"
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 

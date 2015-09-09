@@ -14,7 +14,9 @@
             scope: {
                 placeholder: '@',
                 selected: '=?',
-                canAddChoice: '='
+                canAddChoice: '=',
+                refreshSuggestions: '&',
+                suggestionList: '='
             },
             templateUrl: 'app/components/py-angular-multiselect/py-angular-multiselect.html',
             controller: pyAngularMultiselectController,
@@ -24,31 +26,14 @@
         return directive;
     }
 
-    function pyAngularMultiselectController($element, $timeout, $log, MultiselectHelper) {
+    function pyAngularMultiselectController($element, $timeout, $log, MultiselectHelper, $q) {
         var vm = this;
-
-        vm.resultsList = [
-            {
-                title: "Choice1"
-            },
-            {
-                title: "Choice2"
-            },
-            {
-                title: "choiceThree"
-            },
-            {
-                title: "Choice_4"
-            },
-            {
-                title: "Choice-5"
-            }
-        ];
 
         var HELP_TEXT_NEW = "(Create New)";
         var HELP_TEXT_SELECTED = "(Already Selected)";
         var HELP_TEXT_SUGGESTED = "(Suggested)";
-        vm.name = "title";
+
+        vm.name = "titleNoFormatting";
         vm.createNewOptions = {
             case: "camelcase",  // options: none, uppercase, lowercase, camelcase, capitalize, kebabcase, snakecase, startcase, nowhitespace;
             prepend: '#'
@@ -57,22 +42,26 @@
         vm.maxChipsAmount = 5;
         vm.maxSuggestions = null;
         vm.isCaseSensitive = false;
-
+        vm.cache = {};
+        vm.DEBOUNCE_TIME = 2000;
 
         vm.inputElement = $element[0].getElementsByClassName('multi-select-input-search');
 
         vm.dropdownHelpText = '';
         vm.focusIndex = 0;
         vm.chips = vm.chips || [];
-        vm.selectInput = '';
+        vm.searchText = '';
         vm.chipFocus = -1;
         vm.hideSuggestionsDropdown = true;
         vm.maxLengthInput = 32;
         vm.maxChipsReached = false;
+        vm.queryProcessing = false;
 
         vm.addResult = addResult;
         vm.caseSensitive = caseSensitive;
+        vm.cacheSearchText = cacheSearchText;
         vm.getSuggestedHelpText = getSuggestedHelpText;
+        vm.getSuggestions = getSuggestions;
         vm.checkMaxChipAmount = checkMaxChipAmount;
         vm.clearInput = clearInput;
         vm.clearInputIfNameMatches = clearInputIfNameMatches;
@@ -82,6 +71,8 @@
         vm.findInResults = findInResults;
         vm.focusChip = focusChip;
         vm.getAdjacentChipIndex = getAdjacentChipIndex;
+        vm.handleProcessingSuggestions = handleProcessingSuggestions;
+        vm.handleQuery = handleQuery;
         vm.onInputChange = onInputChange;
         vm.inputKeypress = inputKeypress;
         vm.onArrowDown = onArrowDown;
@@ -100,14 +91,18 @@
         vm.sanitizeSuggestions = sanitizeSuggestions;
         vm.setFocusToSuggestion = setFocusToSuggestion;
         vm.setInputFocus = setInputFocus;
+        vm.setSuggestionSelection = setSuggestionSelection;
         vm.suggestionClick = suggestionClick;
         vm.toggleSuggestion = toggleSuggestion;
+        vm.updateSuggestions = updateSuggestions;
+
+        var searchDebounce = _.debounce(debounceServer, vm.DEBOUNCE_TIME);
 
         initialize();
 
         function initialize() {
             if (vm.canAddChoice) {
-                vm.resultsList.unshift({id: 'stub'});
+                vm.suggestionList.unshift({id: 'stub'});
 
                 if(vm.maxSuggestions) {
                     vm.maxSuggestions++;
@@ -129,7 +124,7 @@
         }
 
         function getSuggestedHelpText() {
-            if (!vm.selectInput) {
+            if (!vm.searchText) {
                 return '';
             }
             if (vm.findInChips()) {
@@ -139,6 +134,32 @@
                 return HELP_TEXT_SUGGESTED;
             }
             return HELP_TEXT_NEW;
+        }
+
+        function getSuggestions(searchText) {
+            var deferred = $q.defer();
+            if(angular.isUndefined(vm.refreshSuggestions())) {
+                deferred.resolve();
+            }
+
+            deferred.resolve(vm.refreshSuggestions()(searchText));
+
+            return deferred.promise;
+        }
+
+        function updateSuggestions (matches) {
+            if (vm.canAddChoice) {
+                vm.suggestionList = _.take(vm.suggestionList);
+            } else {
+                vm.suggestionList = [];
+            }
+
+            vm.suggestionList = _.union(vm.suggestionList, matches);
+        }
+
+        function cacheSearchText(matches) {
+            var term = vm.searchText;
+            vm.cache[term] = matches;
         }
 
         function checkMaxChipAmount() {
@@ -159,18 +180,18 @@
         }
 
         function clearInput() {
-            vm.selectInput = '';
+            vm.searchText = '';
             vm.suggestedCreateText = '';
         }
 
         function clearInputIfNameMatches(name) {
-            if (name === vm.selectInput) {
+            if (name === vm.searchText) {
                 vm.clearInput();
             }
         }
 
         function createNewChip() {
-            if (vm.findInChips() || !vm.selectInput) {
+            if (vm.findInChips() || !vm.searchText) {
                 return;
             }
 
@@ -188,13 +209,13 @@
         }
 
         function findIndexInSuggestions() {
-            return _.findIndex(vm.resultsList, function (item) {
+            return _.findIndex(vm.suggestionList, function (item) {
                 return vm.caseSensitive(item[vm.name]) === vm.caseSensitive(vm.suggestedCreateText);
             });
         }
 
         function findInResults() {
-            return _.find(vm.resultsList, function (item) {
+            return _.find(vm.suggestionList, function (item) {
                 return vm.caseSensitive(item[vm.name]) === vm.caseSensitive(vm.suggestedCreateText);
             });
         }
@@ -222,14 +243,53 @@
             return index - 1;
         }
 
-        function onInputChange() {
-            vm.hideSuggestionsDropdown = false;
-            if (vm.canAddChoice) {
-                vm.focusIndex = 0;
+        function handleQuery() {
+
+            if(vm.queryProcessing) {
+                console.log('processing');
+                return;
             }
 
-            vm.suggestedCreateText = MultiselectHelper.sanitizeString(vm.selectInput, vm.createNewOptions.case);
+            vm.queryProcessing = true;
+
+            var term = vm.searchText.toLowerCase();
+
+            if(!vm.noCache && vm.cache[term]) {
+                console.log('cache');
+                vm.queryProcessing = false;
+                vm.handleProcessingSuggestions(vm.cache[term]);
+                return;
+            }
+
+            searchDebounce();
+        }
+
+        function debounceServer() {
+            vm.getSuggestions(vm.searchText)
+                .then(function(data) {
+                    if(!data || !vm.queryProcessing) {
+                        return;
+                    }
+                    vm.handleProcessingSuggestions(data);
+                })
+                .finally(function() {
+                    vm.queryProcessing = false;
+                });
+        }
+
+        function onInputChange() {
+            vm.suggestedCreateText = MultiselectHelper.sanitizeString(vm.searchText, vm.createNewOptions.case);
             vm.suggestedCreateText = vm.prependCreateNewOptions(vm.suggestedCreateText);
+            vm.setFocusToSuggestion();
+            vm.dropdownHelpText = vm.getSuggestedHelpText();
+            vm.handleQuery();
+        }
+
+        function handleProcessingSuggestions(results) {
+            vm.cacheSearchText(results);
+            vm.updateSuggestions(results);
+            vm.sanitizeSuggestions();
+            vm.setSuggestionSelection();
             vm.setFocusToSuggestion();
             vm.dropdownHelpText = vm.getSuggestedHelpText();
         }
@@ -271,8 +331,8 @@
                return;
             }
 
-            if (vm.focusIndex >= vm.resultsList.length - 1) {
-                vm.focusIndex = vm.resultsList.length - 1;
+            if (vm.focusIndex >= vm.suggestionList.length - 1) {
+                vm.focusIndex = vm.suggestionList.length - 1;
                 return;
             }
 
@@ -344,7 +404,7 @@
                 vm.removeAndSelectAdjacentChip(vm.chipFocus);
                 return;
             }
-            vm.toggleSuggestion(vm.resultsList[vm.focusIndex]);
+            vm.toggleSuggestion(vm.suggestionList[vm.focusIndex]);
         }
 
         function onFocusInput() {
@@ -405,7 +465,7 @@
         }
 
         function sanitizeSuggestions() {
-            _.forEach(vm.resultsList, function (item) {
+            _.forEach(vm.suggestionList, function (item) {
                 if (item[vm.name]) {
                     item[vm.name] = MultiselectHelper.sanitizeString(item[vm.name], vm.createNewOptions.case);
                     item[vm.name] = vm.prependCreateNewOptions(item[vm.name]);
@@ -417,16 +477,29 @@
             var found = vm.findIndexInSuggestions();
             if (found >= 0) {
                 vm.focusIndex = found;
+                return;
             }
+
+            vm.focusIndex = 0;
         }
 
         function setInputFocus() {
             vm.chipFocus = -1;
             vm.inputElement[0].focus();
-            if(vm.selectInput) {
-                var textLength = vm.selectInput.length;
+            if(vm.searchText) {
+                var textLength = vm.searchText.length;
                 vm.inputElement[0].setSelectionRange(textLength, textLength);
             }
+        }
+
+        function setSuggestionSelection() {
+            _.forEach(vm.suggestionList, function(suggestion) {
+                var found = _.find(vm.chips, function(chip) {
+                    return suggestion[vm.name] === chip[vm.name];
+                });
+
+                suggestion.selected = !!found;
+            });
         }
 
         function suggestionClick(suggestion, index) {

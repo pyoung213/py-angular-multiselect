@@ -58,7 +58,7 @@
 
         it('should change suggested help text to blank', function() {
             vm.dropdownHelpText = "whatever";
-            vm.selectInput = '';
+            vm.searchText = '';
 
             expect(vm.getSuggestedHelpText()).toEqual('');
         });
@@ -66,7 +66,7 @@
         it('should change suggested help text if found in chips', function() {
             spyOn(vm, "findInChips").and.returnValue(true);
             vm.dropdownHelpText = '';
-            vm.selectInput = 'something';
+            vm.searchText = 'something';
             vm.getSuggestedHelpText();
 
             expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_SELECTED);
@@ -76,7 +76,7 @@
             spyOn(vm, "findInChips").and.returnValue(false);
             spyOn(vm, "findIndexInSuggestions").and.returnValue(1);
             vm.dropdownHelpText = '';
-            vm.selectInput = 'something';
+            vm.searchText = 'something';
             vm.getSuggestedHelpText();
 
             expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_SUGGESTED);
@@ -86,7 +86,7 @@
             spyOn(vm, "findInChips").and.returnValue(false);
             spyOn(vm, "findIndexInSuggestions").and.returnValue(-1);
             vm.dropdownHelpText = '';
-            vm.selectInput = 'something';
+            vm.searchText = 'something';
             vm.getSuggestedHelpText();
 
             expect(vm.getSuggestedHelpText()).toEqual(HELP_TEXT_NEW);
@@ -127,18 +127,18 @@
         });
 
         it('should clear input and suggested text', function() {
-            vm.selectInput = "Something";
+            vm.searchText = "Something";
             vm.suggestedCreateText = "mock text";
 
             vm.clearInput();
 
-            expect(vm.selectInput).toEqual('');
+            expect(vm.searchText).toEqual('');
             expect(vm.suggestedCreateText).toEqual('');
         });
 
         it('should clear input if name matches selectedText', function() {
             spyOn(vm, 'clearInput');
-            vm.selectInput = "mock";
+            vm.searchText = "mock";
             var name = "mock";
 
             vm.clearInputIfNameMatches(name);
@@ -148,7 +148,7 @@
 
         it('should not clear input if name does not matche selectedText', function() {
             spyOn(vm, 'clearInput');
-            vm.selectInput = "mock";
+            vm.searchText = "mock";
             var name = "mock2";
 
             vm.clearInputIfNameMatches(name);
@@ -160,7 +160,7 @@
             spyOn(vm, 'findInChips').and.returnValue(false);
             spyOn(vm, 'addResult');
             spyOn(vm, 'clearInput');
-            vm.selectInput = "newChip";
+            vm.searchText = "newChip";
             vm.suggestedCreateText = "#newChip";
             var newChip = {
                 name: vm.suggestedCreateText
@@ -176,7 +176,7 @@
             spyOn(vm, 'findInChips').and.returnValue(true);
             spyOn(vm, 'addResult');
             spyOn(vm, 'clearInput');
-            vm.selectInput = "newChip";
+            vm.searchText = "newChip";
 
             vm.createNewChip();
 
@@ -188,7 +188,7 @@
             spyOn(vm, 'findInChips').and.returnValue(false);
             spyOn(vm, 'addResult');
             spyOn(vm, 'clearInput');
-            vm.selectInput = "";
+            vm.searchText = "";
 
             vm.createNewChip();
 
@@ -223,7 +223,7 @@
         });
 
         it('should on arrow down increase the focusIndex', function() {
-            vm.resultsList = [{},{},{}];
+            vm.suggestionList = [{},{},{}];
             vm.chipFocus = -1;
             vm.focusIndex = 1;
 
@@ -234,7 +234,7 @@
         });
 
         it('should on arrow down if last in list, return same index', function() {
-            vm.resultsList = [{},{},{}];
+            vm.suggestionList = [{},{},{}];
             vm.chipFocus = -1;
             vm.focusIndex = 2;
 
@@ -244,7 +244,7 @@
         });
 
         it('should not affect index on arrow down if we have chip focus', function() {
-            vm.resultsList = [{},{},{}];
+            vm.suggestionList = [{},{},{}];
             vm.chipFocus = 0;
             vm.focusIndex = 1;
 
@@ -483,11 +483,11 @@
         });
 
         it('expect to remove chip and clear input if matches name', function() {
-            vm.selectInput = "something";
+            vm.searchText = "something";
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'checkMaxChipAmount');
             spyOn(vm, 'clearInput');
-            vm.chips = [{id:1, selected: true, name: vm.selectInput},{id:2, selected: true}];
+            vm.chips = [{id:1, selected: true, name: vm.searchText},{id:2, selected: true}];
             vm.removeChip(vm.chips[0]);
             $timeout.flush();
 
@@ -508,7 +508,7 @@
         it('should sanitize suggestions', function() {
             spyOn(MultiselectHelper, 'sanitizeString');
             spyOn(vm, 'prependCreateNewOptions');
-            vm.resultsList = [{name: "moCK!"}];
+            vm.suggestionList = [{name: "moCK!"}];
 
             vm.sanitizeSuggestions();
 

@@ -35,6 +35,7 @@
         </li>
     </ul>
     <div class="multi-suggestions-dropdown" ng-hide="vm.hideSuggestionsDropdown">
+        <div class="multi-loading-bar" ng-class="{'animating': vm.isGettingResults}"></div>
         <ul class="multi-suggestions-ul">
             <li
                     aria-label="list-item {{$index}}"

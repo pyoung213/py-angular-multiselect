@@ -103,6 +103,7 @@
     }
 
     .multi-suggestions-dropdown {
+        position:relative;
 
         .multi-suggestions-ul {
             list-style:none;
@@ -118,7 +119,7 @@
             padding: 0 15px;
             line-height: 48px;
             height: 48px;
-            transition: background .15s linear;
+            transition: background 0.2s linear;
             margin: 0;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -131,6 +132,10 @@
 
             &.suggestion-focused {
                 background: #eee;
+            }
+
+            &.ng-leave {
+                transition: none;
             }
         }
 
@@ -184,6 +189,24 @@
         .svg-bg-circle {
             stroke:#CCCCCC;
         }
+    }
+
+    .multi-loading-bar {
+        position: absolute;
+        top:0;
+        left:0;
+        right:0;
+        width: 0%;
+        height: 2px;
+        background: blue;
+        z-index:10;
+
+        &.animating {
+            width: 100%;
+            transition: width 0.4s ease-in-out;
+        }
+
+
     }
 
     @keyframes dash {

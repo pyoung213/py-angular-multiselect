@@ -43,7 +43,7 @@
         vm.maxSuggestions = null;
         vm.isCaseSensitive = false;
         vm.cache = {};
-        vm.DEBOUNCE_TIME = 2000;
+        vm.DEBOUNCE_TIME = 500;
 
         vm.inputElement = $element[0].getElementsByClassName('multi-select-input-search');
 
@@ -245,8 +245,7 @@
 
         function handleQuery() {
 
-            if(vm.queryProcessing) {
-                console.log('processing');
+            if(vm.queryProcessing || !vm.searchText) {
                 return;
             }
 
@@ -265,6 +264,7 @@
         }
 
         function debounceServer() {
+            vm.isGettingResults = true;
             vm.getSuggestions(vm.searchText)
                 .then(function(data) {
                     if(!data || !vm.queryProcessing) {
@@ -292,6 +292,7 @@
             vm.setSuggestionSelection();
             vm.setFocusToSuggestion();
             vm.dropdownHelpText = vm.getSuggestedHelpText();
+            vm.isGettingResults = false;
         }
 
         function inputKeypress(event) {

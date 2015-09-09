@@ -32,19 +32,19 @@
 
         var defaultOptions = {
             canAddChoice: true,
+            createNewCase: "none", // options: none, uppercase, lowercase, camelcase, capitalize, kebabcase, snakecase, startcase, nowhitespace;
+            createNewPrepend: "",
             helpTextNew: "(Create New)",
             helpTextSelected: "(Already Selected)",
             helpTextSuggested:  "(Suggested)",
-            schemaName: "name",
+            isCaseSensitive: false,
+            maxChipsAmount: null,
+            maxLengthInput: null,
+            maxSuggestions: null,
             schemaDescription: "description",
             schemaImage: "url",
-            createNewCase: "none", // options: none, uppercase, lowercase, camelcase, capitalize, kebabcase, snakecase, startcase, nowhitespace;
-            createNewPrepend: "",
-            maxChipsAmount: null,
-            maxSuggestions: null,
-            isCaseSensitive: false,
-            serverDebounceTime: 500,
-            maxLengthInput: null
+            schemaName: "name",
+            serverDebounceTime: 500
         };
 
         vm.options = _.merge(defaultOptions, vm.overrideOptions);

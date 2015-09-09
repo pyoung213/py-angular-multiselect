@@ -4,11 +4,11 @@
                 ng-repeat="choice in vm.chips"
                 class="multi-select-choice-li py-chip"
                 ng-class="{'chip-focused': $index === vm.chipFocus}"
-                ng-click="vm.removeChip(choice, $index)"
+                ng-click="vm.focusChip($index)"
                 tabindex="{{$index}}"
                 ng-keydown="vm.inputKeypress($event)">
             <span class="multi-select-choice-content">{{choice[vm.options.schemaName]}}</span>
-            <button class="multi-select-choice-close">
+            <button class="multi-select-choice-close" ng-click="vm.removeChip(choice, $index)">
                 <svg class="multi-select-close-svg" version="1.1" x="0px" y="0px" viewBox="0 0 24 24"
                      xmlns="http://www.w3.org/2000/svg" fit="" height="100%"
                      width="100%" preserveAspectRatio="xMidYMid meet" style="pointer-events: none; display: block;">

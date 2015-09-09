@@ -7,7 +7,7 @@
                 ng-click="vm.removeChip(choice, $index)"
                 tabindex="{{$index}}"
                 ng-keydown="vm.inputKeypress($event)">
-            <span class="multi-select-choice-content">{{choice[vm.name]}}</span>
+            <span class="multi-select-choice-content">{{choice[vm.options.schemaName]}}</span>
             <button class="multi-select-choice-close">
                 <svg class="multi-select-close-svg" version="1.1" x="0px" y="0px" viewBox="0 0 24 24"
                      xmlns="http://www.w3.org/2000/svg" fit="" height="100%"
@@ -28,7 +28,7 @@
                     ng-change="vm.onInputChange()"
                     ng-blur="vm.onBlurInput($event)"
                     ng-focus="vm.onFocusInput()"
-                    maxlength="{{vm.maxLengthInput}}"
+                    maxlength="{{vm.options.maxLengthInput}}"
                     ng-keydown="vm.inputKeypress($event)"
                     />
             <span ng-show="vm.maxChipsReached" class="multi-select-input-search">Max Tags Reached!</span>
@@ -41,14 +41,14 @@
                     aria-label="list-item {{$index}}"
                     tabindex="{{$index}}"
                     class="multi-suggestion-li"
-                    ng-repeat="result in vm.suggestionList | limitTo:vm.maxSuggestions"
+                    ng-repeat="result in vm.suggestionList | limitTo:vm.options.maxSuggestions"
                     ng-click="vm.suggestionClick(result, $index)"
                     ng-class="{'suggestion-selected': result.selected, 'suggestion-focused': $index === vm.focusIndex}">
 
-                <span ng-if="vm.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>
+                <span ng-if="vm.options.canAddChoice && $first" class="multi-suggestion-title">{{vm.suggestedCreateText}} {{vm.dropdownHelpText}}</span>
 
-                <div ng-if="!vm.canAddChoice || vm.canAddChoice && !$first">
-                    <span class="multi-suggestion-title" ng-bind="result[vm.name]"></span>
+                <div ng-if="!vm.options.canAddChoice || vm.options.canAddChoice && !$first">
+                    <span class="multi-suggestion-title" ng-bind="result[vm.options.schemaName]"></span>
                     <svg width="120px" height="120px" viewBox="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                         <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                             <g id="svg-checkmark">

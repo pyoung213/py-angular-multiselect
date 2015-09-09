@@ -23,7 +23,9 @@
                 $element: element
             });
 
-            vm.name = 'name';
+            vm.options = {};
+
+            vm.options.schemaName = 'name';
         }));
 
         it('should add result to chips total', function() {
@@ -136,7 +138,7 @@
             expect(vm.suggestedCreateText).toEqual('');
         });
 
-        it('should clear input if name matches selectedText', function() {
+        it('should clear input if schemaName matches selectedText', function() {
             spyOn(vm, 'clearInput');
             vm.searchText = "mock";
             var name = "mock";
@@ -146,7 +148,7 @@
             expect(vm.clearInput).toHaveBeenCalled();
         });
 
-        it('should not clear input if name does not matche selectedText', function() {
+        it('should not clear input if schemaName does not matche selectedText', function() {
             spyOn(vm, 'clearInput');
             vm.searchText = "mock";
             var name = "mock2";
@@ -473,7 +475,7 @@
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'checkMaxChipAmount');
             spyOn(vm, 'clearInput');
-            vm.chips = [{id:1, selected: true, name:"mock"},{id:2, selected: true}];
+            vm.chips = [{id:1, selected: true, schemaName:"mock"},{id:2, selected: true}];
             vm.removeChip(vm.chips[0]);
             $timeout.flush();
 
@@ -482,12 +484,12 @@
             expect(vm.clearInput).not.toHaveBeenCalled();
         });
 
-        it('expect to remove chip and clear input if matches name', function() {
+        it('expect to remove chip and clear input if matches schemaName', function() {
             vm.searchText = "something";
             spyOn(vm, 'setInputFocus');
             spyOn(vm, 'checkMaxChipAmount');
             spyOn(vm, 'clearInput');
-            vm.chips = [{id:1, selected: true, name: vm.searchText},{id:2, selected: true}];
+            vm.chips = [{id:1, selected: true, schemaName: vm.searchText},{id:2, selected: true}];
             vm.removeChip(vm.chips[0]);
             $timeout.flush();
 
@@ -508,7 +510,7 @@
         it('should sanitize suggestions', function() {
             spyOn(MultiselectHelper, 'sanitizeString');
             spyOn(vm, 'prependCreateNewOptions');
-            vm.suggestionList = [{name: "moCK!"}];
+            vm.suggestionList = [{schemaName: "moCK!"}];
 
             vm.sanitizeSuggestions();
 

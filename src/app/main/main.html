@@ -1,7 +1,7 @@
 <div class="row">
   <h1>Multi Select</h1>
   <div class="small-8 large-centered columns">
-    <py-angular-multiselect placeholder="Add tags and stuff" can-add-choice="true" suggestion-list="someList" refresh-suggestions="refreshList" selected="selected"></py-angular-multiselect>
+    <py-angular-multiselect placeholder="Add tags and stuff" options="overrides" suggestion-list="someList" refresh-suggestions="refreshList" selected="selected"></py-angular-multiselect>
     <pre>{{selected | json}}</pre>
   </div>
 </div>

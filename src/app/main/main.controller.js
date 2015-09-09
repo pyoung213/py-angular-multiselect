@@ -45,6 +45,12 @@
 
         $scope.selected = [];
 
+        $scope.overrides = {
+            schemaName: 'titleNoFormatting',
+            createNewCase: "camelcase",
+            createNewPrepend: "#"
+        };
+
         $scope.someList = [
             {
                 titleNoFormatting: "Choice1"

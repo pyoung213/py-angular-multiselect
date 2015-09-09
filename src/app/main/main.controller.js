@@ -43,6 +43,8 @@
                 });
         }
 
+        $scope.selected = [];
+
         $scope.someList = [
             {
                 titleNoFormatting: "Choice1"

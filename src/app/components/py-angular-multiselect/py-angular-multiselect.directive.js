@@ -13,7 +13,7 @@
             restrict: 'E',
             scope: {
                 placeholder: '@',
-                selected: '=?',
+                chips: '=selected',
                 canAddChoice: '=',
                 refreshSuggestions: '&',
                 suggestionList: '='
